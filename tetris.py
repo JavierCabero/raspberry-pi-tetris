@@ -1,33 +1,27 @@
+##########################
+#                        #
+#  Javier Cabero Guerra  #
+#  Copyright (c) 2016    #
+#  All rights reserved   #
+#                        #
+##########################
 
 from sense_hat import SenseHat
 import os
 import time
-import pygame  # See http://www.pygame.org/docs
+import pygame
 from pygame.locals import *
 
 os.system('export DISPLAY=:0')
 
-print("Press Escape to quit")
-time.sleep(1)
-
 pygame.init()
-pygame.display.set_mode((640, 480))
+pygame.display.set_mode((800, 600))
 
 clock = pygame.time.Clock()
 
+# create and clear
 sense = SenseHat()
-sense.clear()  # Blank the LED matrix
-
-BLACK = [0, 0, 0]
-WHITE = [255, 255, 255]
-
-# 0, 0 = Top left
-# 7, 7 = Bottom right
-UP_PIXELS = [[3, 0], [4, 0]]
-DOWN_PIXELS = [[3, 7], [4, 7]]
-LEFT_PIXELS = [[0, 3], [0, 4]]
-RIGHT_PIXELS = [[7, 3], [7, 4]]
-CENTRE_PIXELS = [[3, 3], [4, 3], [3, 4], [4, 4]]
+sense.clear()
 
 moving_piece = None
 fixed_pieces = []
@@ -64,7 +58,7 @@ class Piece:
     def draw(self):
         set_pixels(self.pixels, self.color)
 
-    def handle_event(self, event, colour):
+    def handle_event(self, event):
         if event.key == pygame.K_DOWN:
             if self.move_bottom():
                 sense.clear(0,0,0)
@@ -89,9 +83,9 @@ class Piece:
                 if event.type == KEYDOWN:
                     if event.key == K_ESCAPE:
                         running = False
-                    self.handle_event(event, WHITE)
+                    self.handle_event(event)
                 #if event.type == KEYUP:
-                    #self.handle_event(event, BLACK)
+                    #self.handle_event(event)
 
 class Triangle(Piece):
     def __init__(self):
