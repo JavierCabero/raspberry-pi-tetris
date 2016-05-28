@@ -142,7 +142,7 @@ class Triangle(Piece):
         self.rotation_idx = 0
         self.pixels       = self.rotations[self.rotation_idx]
         self.color        = [0, 0, 50]
-        self.pos          = [3, 1]
+        self.pos          = [3, 0]
             
 
 class Square(Piece):
@@ -180,7 +180,7 @@ class LeftL(Piece):
         self.rotation_idx = 0
         self.pixels       = self.rotations[self.rotation_idx]
         self.color        = [50, 50, 0]
-        self.pos          = [4, 0]
+        self.pos          = [3, 0]
 
 class Bar(Piece):
     def __init__(self):
@@ -191,7 +191,7 @@ class Bar(Piece):
         self.rotation_idx = 0
         self.pixels       = self.rotations[self.rotation_idx]
         self.color        = [0, 50, 0]
-        self.pos          = [4, 0]
+        self.pos          = [3, 0]
 
 def random_piece(): 
     n = random.randint(0, 4)
@@ -238,8 +238,10 @@ class Grid:
                 sense.show_message("Game Over")
                 sys.exit(0) # TODO move to the piece spawning
 
-    def check_full_lines(self):
+    def check_lines(self):
         i = self.height-1
+
+        lines_completed = 0
 
         while i >= 0:
 
@@ -256,12 +258,11 @@ class Grid:
                     self.cells[x] = self.cells[x-1]
                 self.cells[0] = [None] * self.width
                 i = i + 1
+                lines_completed = lines_completed + 1
 
             i = i - 1
 
-
-    def check_lines(self):
-        self.check_full_lines()
+        return lines_completed
 
     def draw(self):
         for i in range(self.height):
@@ -288,13 +289,18 @@ def main():
 
     step_time          = 1
     respawn_piece_time = 1
+    lvl = 1
+    sense.show_message('Tetris')
+    sense.show_message('Lvl ' + str(lvl))
+    lvl_step_time_decrease_rate = 0.1
+    lines_per_level = 1
+
+    current_lines_completed = 0
 
     # grid
     grid = Grid(8, 8)
 
     next_piece_respawn = -1
-
-    #sense.show_message("Tetris")
 
     # main loop
     while running:
@@ -315,7 +321,13 @@ def main():
                 
                 next_piece_respawn = time.clock() + respawn_piece_time # TODO make respawn
 
-                grid.check_lines()
+                # check lines completed and level
+                current_lines_completed = current_lines_completed + grid.check_lines()
+                if current_lines_completed > lines_per_level:
+                    lvl = lvl + 1
+                    sense.show_message('Lvl ' + str(lvl))
+                    current_lines_completed = 0
+                    step_time = step_time - lvl_step_time_decrease_rate
 
             print 'current grid'
             for i in range(grid.height):
