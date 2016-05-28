@@ -39,7 +39,7 @@ class Piece:
         abs_pixels = []
         for pixel in self.pixels:
             abs_pixels.append([x + y for x, y in zip(pixel, self.pos)])
-            print abs_pixels
+            #print abs_pixels
         return abs_pixels
 
     def move_left(self, grid):
@@ -62,10 +62,10 @@ class Piece:
 
     def move_bottom(self, grid):
         
-        print 'CHECKING BOTTOM'
+        #print 'CHECKING BOTTOM'
 
-        for i in range(grid.height):
-            print grid.cells[i]
+        #for i in range(grid.height):
+        #    print grid.cells[i]
 
         for pixel in self.get_abs_pixels():
             if pixel[1] >= 7:
@@ -80,8 +80,27 @@ class Piece:
     def draw(self):
         set_pixels(self.get_abs_pixels(), self.color)
 
-    def rotate(self): 
-        pass
+    def rotate(self, grid):
+        # switch to next rotation
+        next_rotation_idx = (self.rotation_idx + 1) % len(self.rotations)
+
+        abs_pixels = []
+        for pixel in self.rotations[next_rotation_idx]:
+            abs_pixels.append([x + y for x, y in zip(pixel, self.pos)])
+
+        print 'next rotation'
+        print abs_pixels
+
+        for abs_pixel in abs_pixels:
+            print 'checking room for (' + str(abs_pixel[1]) + ', ' + str(abs_pixel[0]) + ')'
+            if not grid.isEmpty(abs_pixel[1], abs_pixel[0]):
+                print 'cant rotate (pixel colliding)'
+                print abs_pixel
+                return False
+        print 'rotation succesful'
+        self.rotation_idx = next_rotation_idx
+        self.pixels = self.rotations[self.rotation_idx]
+        return True
 
     def handle_event(self, event, grid):
         if event.key == pygame.K_DOWN:
@@ -102,7 +121,10 @@ class Piece:
                 self.draw()
                 grid.draw()
         elif event.key == pygame.K_RETURN:
-            self.rotate()
+            if self.rotate(grid):
+                sense.clear(0,0,0)
+                self.draw()
+                grid.draw() 
 
     def keyboard_input(self, grid):
         for event in pygame.event.get():
@@ -117,51 +139,65 @@ class Piece:
 
 class Triangle(Piece):
     def __init__(self):
-        self.rotations = [ [[0, 0], [-1, 0], [0, -1], [1, 0]],
-                           [[0, 0], [0, -1], [1,  0], [0, 1]]
+        self.rotations = [ 
+                           [[0, 0], [-1, 0], [0, -1], [1, 0]],
+                           [[0, 0], [0, -1], [1,  0], [0, 1]],
+                           [[0, 0], [-1, 0], [0,  1], [1, 0]],
+                           [[0, 0], [0, -1], [-1, 0], [0, 1]]
                          ]
         self.rotation_idx = 0
         self.pixels       = self.rotations[self.rotation_idx]
         self.color        = [0, 0, 50]
         self.pos          = [3, 1]
-
-    
-    def rotate(self):
-        # switch to next rotation
-        self.rotation_idx = (self.rotation_idx + 1) % len(self.rotations)
-        for pixel in self.pixels:
-            self.pixels = self.rotations[self.rotation_idx]
             
-'''
+
 class Square(Piece):
     def __init__(self):
-        self.pixels = [[3, 0], [4, 0], [3, 1], [4, 1]]
-        self.color  = [50, 0, 50]
+        self.rotations    = [
+                              [[0, 0], [0, 1], [1, 0], [1, 1]]
+                            ]
+        self.rotation_idx = 0
+        self.pixels       = self.rotations[self.rotation_idx]
+        self.color        = [50, 0, 50]
+        self.pos          = [3, 0]
+
 
 class RightL(Piece):
     def __init__(self):
-        self.pixels = [[3, 0], [3, 1], [3, 2], [4, 2]]
-        self.color  = [50, 0, 0]
+        self.rotations    = [
+                              [[0,  -1], [0,  0], [0, 1], [1,  1]],
+                              [[-1,  1], [-1, 0], [0, 0], [1,  0]],
+                              [[-1, -1], [0, -1], [0, 0], [0,  1]],
+                              [[-1,  0], [0,  0], [1, 0], [1, -1]]
+                            ]
+        self.rotation_idx = 0
+        self.pixels       = self.rotations[self.rotation_idx]
+        self.color        = [50, 0, 0]
+        self.pos          = [3, 0]
 
 class LeftL(Piece):
     def __init__(self):
-        self.pixels = [[4, 0], [4, 1], [4, 2], [3, 2]]
-        self.color  = [50, 50, 0]
-'''
+        self.rotations    = [
+                              [[0,  -1], [0,  0], [0, 1], [-1, 1]],
+                              [[-1, -1], [-1, 0], [0, 0], [1,  0]],
+                              [[1,  -1], [0, -1], [0, 0], [0,  1]],
+                              [[-1,  0], [0,  0], [1, 0], [1,  1]]
+                            ]
+        self.rotation_idx = 0
+        self.pixels       = self.rotations[self.rotation_idx]
+        self.color        = [50, 50, 0]
+        self.pos          = [4, 0]
 
 def random_piece(): 
-    return Triangle()
-    '''
     n = random.randint(0, 3)
     if n == 0:
-        return Triangle()
+        return RightL()
     elif n == 1:
-        return Square()
+        return LeftL()
     elif n == 2:
         return RightL()
     elif n == 3:
         return LeftL()
-    '''
 
 class Grid:
 
@@ -175,7 +211,7 @@ class Grid:
         self.height = height
 
     def isEmpty(self, i, j):
-        return self.cells[i][j] == None
+        return 0 <= i and i < 8 and 0 <= j and j < 8 and self.cells[i][j] == None
 
     def clear_line(self, i):
         self.cells[i] = [None] * self.width
@@ -183,6 +219,10 @@ class Grid:
     def add_piece(self, piece):
         for pixel in piece.get_abs_pixels():
             if pixel[0] < 0 or self.width <= pixel[0] or pixel[1] < 0 or self.height <= pixel[1]: continue
+            if self.cells[pixel[1]][pixel[0]] != None:
+                print 'Tried to add piece to non-empty cell'
+                print pixel
+                raise 
             self.cells[pixel[1]][pixel[0]] = piece.color
 
     def check_game_over(self):
@@ -264,6 +304,24 @@ def main():
                 next_piece_respawn = time.clock() + respawn_piece_time # TODO make respawn
 
                 grid.check_lines()
+
+            print 'current grid'
+            for i in range(grid.height):
+                for j in range(grid.width):
+                    if grid.cells[i][j] != None:
+                        print 'X',
+                    else:
+                        print '0',
+                print ''
+            print ''
+
+            for i in range(grid.height):
+                for j in range(grid.width):
+                    if not grid.isEmpty(i, j):
+                        print 'X',
+                    else:
+                        print '0',
+                print ''
 
             # check respawn
             if next_piece_respawn != -1 and next_piece_respawn < time.clock():
