@@ -39,7 +39,6 @@ class Piece:
         abs_pixels = []
         for pixel in self.pixels:
             abs_pixels.append([x + y for x, y in zip(pixel, self.pos)])
-            #print abs_pixels
         return abs_pixels
 
     def move_left(self, grid):
@@ -62,17 +61,11 @@ class Piece:
 
     def move_bottom(self, grid):
         
-        #print 'CHECKING BOTTOM'
-
-        #for i in range(grid.height):
-        #    print grid.cells[i]
-
         for pixel in self.get_abs_pixels():
             if pixel[1] >= 7:
                 return False
             if not grid.isEmpty(pixel[1]+1, pixel[0]):
                 return False
-            print pixel
 
         self.pos[1] = self.pos[1] + 1
         return True
@@ -97,7 +90,6 @@ class Piece:
                 print 'cant rotate (pixel colliding)'
                 print abs_pixel
                 return False
-        print 'rotation succesful'
         self.rotation_idx = next_rotation_idx
         self.pixels = self.rotations[self.rotation_idx]
         return True
@@ -188,16 +180,29 @@ class LeftL(Piece):
         self.color        = [50, 50, 0]
         self.pos          = [4, 0]
 
+class Bar(Piece):
+    def __init__(self):
+        self.rotations    = [
+                              [[0, -1], [0, 0], [0, 1], [0, 2]],
+                              [[-1, 0], [0, 0], [1, 0], [2, 0]]
+                            ]
+        self.rotation_idx = 0
+        self.pixels       = self.rotations[self.rotation_idx]
+        self.color        = [0, 50, 0]
+        self.pos          = [4, 0]
+
 def random_piece(): 
-    n = random.randint(0, 3)
+    n = random.randint(0, 4)
     if n == 0:
-        return RightL()
+        return Triangle()
     elif n == 1:
-        return LeftL()
+        return Square()
     elif n == 2:
         return RightL()
     elif n == 3:
         return LeftL()
+    elif n == 4:
+        return Bar()
 
 class Grid:
 
@@ -232,7 +237,9 @@ class Grid:
                 sys.exit(0)
 
     def check_full_lines(self):
-        for i in range(self.height)[::-1]:
+        i = self.height-1
+
+        while i >= 0:
 
             line_complete = True
             for j in range(self.width):
@@ -246,6 +253,10 @@ class Grid:
                 for x in range(0, i+1)[::-1]:
                     self.cells[x] = self.cells[x-1]
                 self.cells[0] = [None] * self.width
+                i = i + 1
+
+            i = i - 1
+
 
     def check_lines(self):
         self.check_game_over()
