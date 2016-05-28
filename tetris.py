@@ -81,17 +81,17 @@ class Piece:
         for pixel in self.rotations[next_rotation_idx]:
             abs_pixels.append([x + y for x, y in zip(pixel, self.pos)])
 
-        print 'next rotation'
-        print abs_pixels
+        #print 'next rotation'
+        #print abs_pixels
 
         for abs_pixel in abs_pixels:
-            print 'checking room for (' + str(abs_pixel[1]) + ', ' + str(abs_pixel[0]) + ')'
+            #print 'checking room for (' + str(abs_pixel[1]) + ', ' + str(abs_pixel[0]) + ')'
             if (abs_pixel[0] < 0 or 8 <= abs_pixel[0] or 8 <= abs_pixel[1]) or not grid.isEmpty(abs_pixel[1], abs_pixel[0]):
-                print 'cant rotate (pixel colliding)'
-                print abs_pixel
+                #print 'cant rotate (pixel colliding)'
+                #print abs_pixel
                 return False
-            else:
-                print 'ok'
+            #else:
+                #print 'ok'
         self.rotation_idx = next_rotation_idx
         self.pixels = self.rotations[self.rotation_idx]
         return True
@@ -205,7 +205,7 @@ class SquigglyL(Piece):
                             ]
         self.rotation_idx = 0
         self.pixels       = self.rotations[self.rotation_idx]
-        self.color        = [50, 100, 0]
+        self.color        = [75, 100, 0]
         self.pos          = [3, 0]
 
 class Bar(Piece):
@@ -277,7 +277,7 @@ class Grid:
 
             # if complete break line and move everything downwards
             if line_complete:
-                print self.cells[i]
+                print 'line completed!'
                 for x in range(0, i+1)[::-1]:
                     self.cells[x] = self.cells[x-1]
                 self.cells[0] = [None] * self.width
@@ -285,6 +285,9 @@ class Grid:
                 lines_completed = lines_completed + 1
 
             i = i - 1
+        
+        if lines_completed == 4:
+            print 'Tetris!'
 
         return lines_completed
 
@@ -357,6 +360,11 @@ def main():
                 current_lines_completed = current_lines_completed + grid.check_lines()
                 if current_lines_completed >= lines_per_level:
                     lvl = lvl + 1
+                    
+                    if lvl > 5:
+                        sense.show_message('You won!!')
+                        sys.exit(0)
+
                     sense.show_message('Lvl ' + str(lvl))
                     current_lines_completed = 0
                     step_time = step_time - lvl_step_time_decrease_rate
