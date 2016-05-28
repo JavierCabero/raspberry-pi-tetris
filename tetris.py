@@ -46,12 +46,16 @@ class Piece:
         for pixel in self.get_abs_pixels():
             if pixel[0] <= 0:
                 return False
+            if not grid.isEmpty(pixel[1], pixel[0]-1):
+                return False
         self.pos[0] = self.pos[0] - 1
         return True
 
     def move_right(self, grid):
         for pixel in self.get_abs_pixels():
             if pixel[0] >= 7:
+                return False
+            if not grid.isEmpty(pixel[1], pixel[0]+1):
                 return False
         self.pos[0] = self.pos[0] + 1
         return True
@@ -113,14 +117,20 @@ class Piece:
 
 class Triangle(Piece):
     def __init__(self):
-        self.pixels = [[0, 0], [-1, 0], [0, -1], [1, 0]]
-        self.color  = [0, 0, 50]
-        self.pos    = [3, 1]
+        self.rotations = [ [[0, 0], [-1, 0], [0, -1], [1, 0]],
+                           [[0, 0], [0, -1], [1,  0], [0, 1]]
+                         ]
+        self.rotation_idx = 0
+        self.pixels       = self.rotations[self.rotation_idx]
+        self.color        = [0, 0, 50]
+        self.pos          = [3, 1]
 
-    '''
+    
     def rotate(self):
+        # switch to next rotation
+        self.rotation_idx = (self.rotation_idx + 1) % len(self.rotations)
         for pixel in self.pixels:
-    '''
+            self.pixels = self.rotations[self.rotation_idx]
             
 '''
 class Square(Piece):
