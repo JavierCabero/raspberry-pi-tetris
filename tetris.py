@@ -86,10 +86,12 @@ class Piece:
 
         for abs_pixel in abs_pixels:
             print 'checking room for (' + str(abs_pixel[1]) + ', ' + str(abs_pixel[0]) + ')'
-            if not grid.isEmpty(abs_pixel[1], abs_pixel[0]):
+            if (abs_pixel[0] < 0 or 8 <= abs_pixel[0] or 8 <= abs_pixel[1]) or not grid.isEmpty(abs_pixel[1], abs_pixel[0]):
                 print 'cant rotate (pixel colliding)'
                 print abs_pixel
                 return False
+            else:
+                print 'ok'
         self.rotation_idx = next_rotation_idx
         self.pixels = self.rotations[self.rotation_idx]
         return True
@@ -216,7 +218,7 @@ class Grid:
         self.height = height
 
     def isEmpty(self, i, j):
-        return 0 <= i and i < 8 and 0 <= j and j < 8 and self.cells[i][j] == None
+        return self.cells[i][j] == None
 
     def clear_line(self, i):
         self.cells[i] = [None] * self.width
@@ -234,7 +236,7 @@ class Grid:
         for j in range(self.width):
             if not self.isEmpty(0, j):
                 sense.show_message("Game Over")
-                sys.exit(0)
+                sys.exit(0) # TODO move to the piece spawning
 
     def check_full_lines(self):
         i = self.height-1
@@ -259,7 +261,6 @@ class Grid:
 
 
     def check_lines(self):
-        self.check_game_over()
         self.check_full_lines()
 
     def draw(self):
