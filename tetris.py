@@ -322,10 +322,10 @@ def main():
     step_time          = 1
     respawn_piece_time = 1
     lvl = 1
-    #sense.show_message('Tetris')
-    #sense.show_message('Lvl ' + str(lvl))
+    sense.show_message('PyTetris')
+    sense.show_message('Lvl ' + str(lvl))
     lvl_step_time_decrease_rate = 0.1
-    lines_per_level = 1
+    lines_per_level = 5
 
     current_lines_completed = 0
 
@@ -355,7 +355,7 @@ def main():
 
                 # check lines completed and level
                 current_lines_completed = current_lines_completed + grid.check_lines()
-                if current_lines_completed > lines_per_level:
+                if current_lines_completed >= lines_per_level:
                     lvl = lvl + 1
                     sense.show_message('Lvl ' + str(lvl))
                     current_lines_completed = 0
