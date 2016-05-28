@@ -31,22 +31,29 @@ fixed_pieces = []
 class Piece:
     def __init__(self):
         self.pixels = []
+        self.pos    = [3, 2]
         self.color  = [0, 0, 50]
 
-    def move_left(self, grid):
+    # returns the list of pixels in their absolute position
+    def get_abs_pixels(self):
+        abs_pixels = []
         for pixel in self.pixels:
+            abs_pixels.append([x + y for x, y in zip(pixel, self.pos)])
+            print abs_pixels
+        return abs_pixels
+
+    def move_left(self, grid):
+        for pixel in self.get_abs_pixels():
             if pixel[0] <= 0:
                 return False
-        for pixel in self.pixels:
-            pixel[0] = pixel[0] - 1
+        self.pos[0] = self.pos[0] - 1
         return True
 
     def move_right(self, grid):
-        for pixel in self.pixels:
+        for pixel in self.get_abs_pixels():
             if pixel[0] >= 7:
                 return False
-        for pixel in self.pixels:
-            pixel[0] = pixel[0] + 1
+        self.pos[0] = self.pos[0] + 1
         return True
 
     def move_bottom(self, grid):
@@ -56,19 +63,21 @@ class Piece:
         for i in range(grid.height):
             print grid.cells[i]
 
-        for pixel in self.pixels:
+        for pixel in self.get_abs_pixels():
             if pixel[1] >= 7:
                 return False
             if not grid.isEmpty(pixel[1]+1, pixel[0]):
                 return False
             print pixel
 
-        for pixel in self.pixels:
-            pixel[1] = pixel[1] + 1
+        self.pos[1] = self.pos[1] + 1
         return True
 
     def draw(self):
-        set_pixels(self.pixels, self.color)
+        set_pixels(self.get_abs_pixels(), self.color)
+
+    def rotate(self): 
+        pass
 
     def handle_event(self, event, grid):
         if event.key == pygame.K_DOWN:
@@ -89,7 +98,7 @@ class Piece:
                 self.draw()
                 grid.draw()
         elif event.key == pygame.K_RETURN:
-            pass
+            self.rotate()
 
     def keyboard_input(self, grid):
         for event in pygame.event.get():
@@ -104,13 +113,20 @@ class Piece:
 
 class Triangle(Piece):
     def __init__(self):
-        self.pixels = [[3, 0], [2, 1], [3, 1], [4, 1]]
+        self.pixels = [[0, 0], [-1, 0], [0, -1], [1, 0]]
         self.color  = [0, 0, 50]
+        self.pos    = [3, 1]
 
+    '''
+    def rotate(self):
+        for pixel in self.pixels:
+    '''
+            
+'''
 class Square(Piece):
     def __init__(self):
         self.pixels = [[3, 0], [4, 0], [3, 1], [4, 1]]
-        self.color  = [50, 0, 0]
+        self.color  = [50, 0, 50]
 
 class RightL(Piece):
     def __init__(self):
@@ -121,10 +137,21 @@ class LeftL(Piece):
     def __init__(self):
         self.pixels = [[4, 0], [4, 1], [4, 2], [3, 2]]
         self.color  = [50, 50, 0]
+'''
 
-def set_pixels(pixels, col):
-    for p in pixels:
-        sense.set_pixel(p[0], p[1], col[0], col[1], col[2])
+def random_piece(): 
+    return Triangle()
+    '''
+    n = random.randint(0, 3)
+    if n == 0:
+        return Triangle()
+    elif n == 1:
+        return Square()
+    elif n == 2:
+        return RightL()
+    elif n == 3:
+        return LeftL()
+    '''
 
 class Grid:
 
@@ -144,18 +171,17 @@ class Grid:
         self.cells[i] = [None] * self.width
 
     def add_piece(self, piece):
-        for pixel in piece.pixels:
+        for pixel in piece.get_abs_pixels():
+            if pixel[0] < 0 or self.width <= pixel[0] or pixel[1] < 0 or self.height <= pixel[1]: continue
             self.cells[pixel[1]][pixel[0]] = piece.color
 
     def check_game_over(self):
-
         for j in range(self.width):
             if not self.isEmpty(0, j):
                 sense.show_message("Game Over")
                 sys.exit(0)
 
     def check_full_lines(self):
-
         for i in range(self.height)[::-1]:
 
             line_complete = True
@@ -181,16 +207,11 @@ class Grid:
                 if self.cells[i][j] != None:
                     sense.set_pixel(j, i, self.cells[i][j])
 
-def random_piece(): 
-    n = random.randint(0, 3)
-    if n == 0:
-        return Triangle()
-    elif n == 1:
-        return Square()
-    elif n == 2:
-        return RightL()
-    elif n == 3:
-        return LeftL()
+def set_pixels(pixels, col):
+    for p in pixels:
+        if 0 <= p[0] and p[0] < 8 and 0 <= p[1] and p[1] < 8:
+            sense.set_pixel(p[0], p[1], col[0], col[1], col[2])
+
 
 def main():
     
