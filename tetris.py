@@ -143,7 +143,7 @@ class Triangle(Piece):
         self.pixels       = self.rotations[self.rotation_idx]
         self.color        = [0, 0, 50]
         self.pos          = [3, 0]
-            
+
 
 class Square(Piece):
     def __init__(self):
@@ -179,7 +179,33 @@ class LeftL(Piece):
                             ]
         self.rotation_idx = 0
         self.pixels       = self.rotations[self.rotation_idx]
-        self.color        = [50, 50, 0]
+        self.color        = [100, 50, 0]
+        self.pos          = [3, 0]
+
+class SquigglyR(Piece):
+    def __init__(self):
+        self.rotations    = [
+                              [[-1,  0], [ 0, 0], [0, -1], [1, -1]],
+                              [[ 0, -1], [ 0, 0], [1,  0], [1,  1]],
+                              [[-1,  1], [ 0, 1], [0,  0], [1,  0]],
+                              [[-1, -1], [-1, 0], [0,  0], [0,  1]]
+                            ]
+        self.rotation_idx = 0
+        self.pixels       = self.rotations[self.rotation_idx]
+        self.color        = [0, 50, 50]
+        self.pos          = [3, 0]
+
+class SquigglyL(Piece):
+    def __init__(self):
+        self.rotations    = [
+                              [[-1, -1], [ 0, 0], [0, -1], [1,  0]],
+                              [[ 1, -1], [ 0, 0], [1,  0], [0,  1]],
+                              [[-1,  0], [ 0, 0], [0,  1], [1,  1]],
+                              [[-1,  1], [-1, 0], [0,  0], [0, -1]]
+                            ]
+        self.rotation_idx = 0
+        self.pixels       = self.rotations[self.rotation_idx]
+        self.color        = [50, 100, 0]
         self.pos          = [3, 0]
 
 class Bar(Piece):
@@ -194,7 +220,7 @@ class Bar(Piece):
         self.pos          = [3, 0]
 
 def random_piece(): 
-    n = random.randint(0, 4)
+    n = random.randint(0, 6)
     if n == 0:
         return Triangle()
     elif n == 1:
@@ -204,13 +230,17 @@ def random_piece():
     elif n == 3:
         return LeftL()
     elif n == 4:
+         return SquigglyL()
+    elif n == 5:
+        return SquigglyR()
+    elif n == 6:
         return Bar()
 
 class Grid:
 
     def __init__(self, width, height):
         self.cells = []
-        # TODO Improve matrix creation code?
+
         for i in range(height):
             self.cells.append([None] * width)
 
@@ -231,12 +261,6 @@ class Grid:
                 print pixel
                 raise 
             self.cells[pixel[1]][pixel[0]] = piece.color
-
-    def check_game_over(self):
-        for j in range(self.width):
-            if not self.isEmpty(0, j):
-                sense.show_message("Game Over")
-                sys.exit(0) # TODO move to the piece spawning
 
     def check_lines(self):
         i = self.height-1
@@ -270,6 +294,14 @@ class Grid:
                 if self.cells[i][j] != None:
                     sense.set_pixel(j, i, self.cells[i][j])
 
+
+    def validate_spawn(self, piece):
+        for abs_pixel in piece.get_abs_pixels():
+            if abs_pixel[1] < 0: continue
+            if not self.isEmpty(abs_pixel[1], abs_pixel[0]):
+                sense.show_message("Game Over")
+                sys.exit(0)
+
 def set_pixels(pixels, col):
     for p in pixels:
         if 0 <= p[0] and p[0] < 8 and 0 <= p[1] and p[1] < 8:
@@ -290,8 +322,8 @@ def main():
     step_time          = 1
     respawn_piece_time = 1
     lvl = 1
-    sense.show_message('Tetris')
-    sense.show_message('Lvl ' + str(lvl))
+    #sense.show_message('Tetris')
+    #sense.show_message('Lvl ' + str(lvl))
     lvl_step_time_decrease_rate = 0.1
     lines_per_level = 1
 
@@ -315,11 +347,11 @@ def main():
             last_time = current_time
 
             if moving_piece != None and not moving_piece.move_bottom(grid):
-                print 'bottom!'
+                print 'piece touched bottom!'
                 grid.add_piece(moving_piece)
                 moving_piece = None
                 
-                next_piece_respawn = time.clock() + respawn_piece_time # TODO make respawn
+                next_piece_respawn = time.clock() + respawn_piece_time
 
                 # check lines completed and level
                 current_lines_completed = current_lines_completed + grid.check_lines()
@@ -329,7 +361,7 @@ def main():
                     current_lines_completed = 0
                     step_time = step_time - lvl_step_time_decrease_rate
 
-            print 'current grid'
+            print '\ncurrent grid'
             for i in range(grid.height):
                 for j in range(grid.width):
                     if grid.cells[i][j] != None:
@@ -339,19 +371,12 @@ def main():
                 print ''
             print ''
 
-            for i in range(grid.height):
-                for j in range(grid.width):
-                    if not grid.isEmpty(i, j):
-                        print 'X',
-                    else:
-                        print '0',
-                print ''
-
             # check respawn
             if next_piece_respawn != -1 and next_piece_respawn < time.clock():
                 next_piece_respawn = -1
                 moving_piece = random_piece()
                 moving_piece.draw()
+                grid.validate_spawn(moving_piece) # if not is game over
 
             # redraw
             sense.clear()
